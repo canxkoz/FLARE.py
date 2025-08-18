@@ -15,6 +15,14 @@ We also release a new additive manufacturing dataset to spur further research.
 Our code is available at
 [https://github.com/vpuri3/FLARE.py](https://github.com/vpuri3/FLARE.py).
 
+## Highlights
+
+- **Linear complexity token mixing.** FLARE is an efficient self-attention mechanism designed to learn on long sequences such as point clouds.
+By replacing full self-attention with low-rank projections and reconstructions, FLARE achieves linear complexity in the number of points.
+- **Superior accuracy.** Across multiple PDE benchmarks, FLARE achieves superior predictive accuracy compared to leading neural surrogate models, despite operating with fewer parameters, and at much lower computational complexity.
+- **Scalability.** FLARE is built entirely from standard fused attention primitives, ensuring high GPU utilization and ease of integration into existing transformer architectures.
+As such, FLARE enables end-to-end training on unstructured meshes with one million points (see Figure below) without distributed computing (Luo et al., 2025) or memory offloading – the largest scale demonstrated for transformer-based PDE surrogates.
+
 ## FLARE
 
 FLARE learns a low rank attention mechanism.
@@ -49,7 +57,15 @@ def flare_multihead_mixer(q, k, v):
     return y
 ```
 
-## Experiments
+## Benchmark dataset of additive manufacturing (AM) simulations.
+
+We simulate the LPBF process on selected geometries from the Autodesk segementation dataset (Lambourne et al., 2021) to generate a benchmark dataset for AM calculations.
+Several geometries are presented in this gallery.
+The color indicates Z (vertical) displacement field.
+
+<p align="center">
+  <img src="figs/lpbf_gallery.jpg" alt="FLARE Architecture" width="100%">
+</p>
 
 ## Bibtex
 ```

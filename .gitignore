@@ -205,3 +205,23 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# PyTorch
+*.pt
+*.pth
+
+# VTK
+*.vtu
+*.vtk
+*.vtm
+*.vtmb
+*.pvd
+
+# wandb
+wandb/
+
+# Datasets
+data/
+
+# Zip files
+*.zip

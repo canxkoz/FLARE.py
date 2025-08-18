@@ -37,6 +37,10 @@ This allows each head to learn independent attention relationships, opening up a
 </p>
 
 FLARE exhibits excellent scaling and can tackle problems with millions of tokens on a single GPU.
+We present time and memory requirements of different attention schemes.
+On an input sequence of one million tokens, FLARE (red) is over $200\times$ faster than vanilla attention, while consuming marginally more memory.
+All models are implemented with flash attention (Dao et al., 2022), and the memory upper bound on a single H100 80GB GPU is depicted with a dashed line.
+Note that the curves for FLARE are somewhat overlapping.
 
 <p align="center">
   <img src="figs/time_memory_bwd.png" alt="FLARE scaling" width="100%">

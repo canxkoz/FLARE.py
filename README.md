@@ -25,7 +25,12 @@ As such, FLARE enables end-to-end training on unstructured meshes with one milli
 
 ## FLARE
 
-FLARE learns a low rank attention mechanism.
+FLARE is a simple yet powerful mechanism designed to break the scalability barrier in PDE surrogate learning.
+FLARE is built on the argument that projecting input sequences onto shorter latent sequences, and then unprojecting to the original sequence length, is equivalent to constructing a low-rank form of attention with rank at most equal to the number of latent tokens (see figure below).
+
+Furthermore, we argue that multiple simultaneous low-rank projections could collectively capture a full attention pattern.
+Unlike Transolver which shares projection weights across heads, or LNO which applies only a single projection, our design allocates a distinct slice of the latent tokens to each head resulting in distinct projection matrices for each head.
+This allows each head to learn independent attention relationships, opening up a key direction of scaling and exploration, wherein each head may specialize in distinct routing patterns.
 
 <p align="center">
   <img src="figs/FLARE.png" alt="FLARE Architecture" width="100%">

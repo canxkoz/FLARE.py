@@ -7,7 +7,7 @@
 
 ## Abstract
 The quadratic complexity of self-attention limits its applicability and scalability on large unstructured meshes.
-We introduce \emph{Fast Low-rank Attention Routing Engine (FLARE)}, a linear complexity self-attention mechanism that routes attention through fixed-length latent sequences.
+We introduce **Fast Low-rank Attention Routing Engine (FLARE)**, a linear complexity self-attention mechanism that routes attention through fixed-length latent sequences.
 Each attention head performs global communication among $N$ tokens by projecting the input sequence onto a fixed length latent sequence of $M \ll N$ tokens using learnable query tokens.
 By routing attention through a bottleneck sequence, FLARE learns a low-rank form of attention that can be applied at $\mathcal{O}(NM)$ cost.
 FLARE not only scales to unprecedented problem sizes, but also delivers superior accuracy compared to state-of-the-art neural PDE surrogates across diverse benchmarks.

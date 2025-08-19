@@ -80,7 +80,7 @@ The color indicates Z (vertical) displacement field.
 
 ## 🏗️ Codebase Architecture
 
-This codebase implements the FLARE architecture and is built upon the [@https://github.com/vpuri3/mlutils.py/tree/master](https://github.com/vpuri3/mlutils.py/tree/master) framework, which provides foundational ML training infrastructure with multi-GPU support, extendable trainer classes, and callback systems.
+This codebase implements the FLARE architecture and is built upon the [`mlutils.py`](https://github.com/vpuri3/mlutils.py/tree/master) framework, which provides foundational ML training infrastructure with multi-GPU support, extendable trainer classes, and callback systems.
 
 The project is organized into several key packages:
 

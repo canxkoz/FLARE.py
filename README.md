@@ -78,10 +78,13 @@ The color indicates Z (vertical) displacement field.
 
 ## Bibtex
 ```
-@article{puri2025FLARE,
-  title={{FLARE}: {F}ast {L}ow-{r}ank {A}ttention {R}outing {E}ngine},
-  author={Puri, Vedant and Joglekar, Aditya and Zhang, Yongjie Jessica and Kara, Levent Burak},
-  journal={arXiv preprint arXiv: XXXX.XXXXX},
-  year={2025}
+@misc{puri2025flare,
+      title={{FLARE}: {F}ast {L}ow-rank {A}ttention {R}outing {E}ngine}, 
+      author={Vedant Puri and Aditya Joglekar and Kevin Ferguson and Yu-hsuan Chen and Yongjie Jessica Zhang and Levent Burak Kara},
+      year={2025},
+      eprint={2508.12594},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2508.12594}, 
 }
 ```

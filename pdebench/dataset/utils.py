@@ -30,7 +30,6 @@ def load_dataset(
         init_step: int = None,
         init_case: int = None,
         exclude: bool = True,
-        train_rollout_noise: float = 0.
     ):
     """Load a dataset by name.
     

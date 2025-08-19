@@ -76,6 +76,120 @@ The color indicates Z (vertical) displacement field.
   <img src="figs/lpbf_gallery.jpg" alt="FLARE Architecture" width="100%">
 </p>
 
+## 🏗️ Codebase Architecture
+
+This codebase implements the FLARE architecture and is built upon the [@https://github.com/vpuri3/mlutils.py/tree/master](https://github.com/vpuri3/mlutils.py/tree/master) framework, which provides foundational ML training infrastructure with multi-GPU support, extendable trainer classes, and callback systems.
+
+The project is organized into several key packages:
+
+### **`pdebench/`** - Main PDE Benchmarking Framework
+- **Models**: Implementation of FLARE alongside state-of-the-art neural PDE surrogates
+  - `flare.py`: Core FLARE architecture with linear complexity attention
+  - `transolver.py`: Transolver baseline model
+  - `lno.py`: Linear Neural Operator
+  - `transformer.py`: Standard transformer architectures
+  - `gnot.py`: Geometry-aware Neural Operator
+  - `perceiver.py`: PerceiverIO architecture
+- **Datasets**: Comprehensive PDE dataset loading and preprocessing
+  - `utils.py`: Dataset utilities and transformations
+- **Callbacks**: Training monitoring, evaluation, and visualization
+
+#### **`am/`** - Additive Manufacturing Specialization
+- **Models**: Specialized architectures for AM simulations
+  - `meshGNN.py`: Graph neural networks for mesh data
+- **Datasets**: LPBF (Laser Powder Bed Fusion) data processing
+  - `sdf.py`: Signed distance function utilities
+  - `extraction.py`: Feature extraction from AM simulations
+  - `filtering.py`: Data filtering and preprocessing
+- **Visualization**: 3D visualization tools for AM geometries
+
+#### **`mlutils/`** - Core ML Framework (from mlutils.py)
+- `trainer.py`: Distributed training with checkpointing and restart capabilities
+- `callbacks.py`: Extensible callback system for monitoring and analysis
+- `utils.py`: General ML utilities and helper functions
+
+#### **`ablation/`** - Performance Analysis Suite
+- Scaling experiments: `scale_dml.py`, `time_memory_*.py`
+- Architecture ablations: `ablate_num_heads.py`, `ablate_num_layers.py`, `ablate_num_blocks.py`
+- Memory and timing benchmarks with Flash Attention comparisons
+
+### 🚀 Key Features
+
+**Scalable Training Infrastructure**
+- Multi-GPU/multi-node training with `torchrun`
+- Automatic checkpointing and restart capabilities
+- Mixed precision training (FP16/FP32)
+- Comprehensive logging and monitoring
+
+**Flexible Model Zoo**
+- FLARE and many of the state-of-the-art neural PDE surrogates
+- Modular architecture for easy experimentation
+
+### 💻 Installation
+
+Clone the repository and run the installation script:
+
+```bash
+git clone https://github.com/vpuri3/FLARE.py.git
+cd FLARE.py
+chmod +x scripts/install.sh
+./scripts/install.sh
+```
+
+The installer will:
+- Set up Python 3.11 virtual environment with `uv`
+- Install PyTorch with CUDA support
+- Install all required dependencies
+- Optionally install Flash Attention for optimal performance
+- Optionally install LaTeX for publication-quality plots
+
+### 🎯 Usage
+
+**Training**
+
+Single GPU training:
+```bash
+python -m pdebench --train true --dataset elasticity --exp_name flare_elasticity --model_type 2 --epochs 100
+```
+
+Multi-GPU training:
+```bash
+torchrun --nproc-per-node gpu -m pdebench --train true --dataset elasticity --exp_name flare_elasticity --model_type 2 --epochs 100
+```
+
+**Evaluation**
+
+Load and evaluate a trained model:
+```bash
+python -m pdebench --eval true --exp_name flare_elasticity
+```
+
+**Configuration**
+
+All experiments are managed through YAML configuration files with comprehensive command-line override support. Results are automatically organized in the `out/` directory with:
+- Model checkpoints
+- Training logs and metrics
+- Evaluation results and visualizations
+- Configuration snapshots
+
+### 📊 Datasets
+
+**PDE Benchmarks**
+- Supports multiple standard PDE benchmark datasets
+- Scalable data loading for large mesh datasets
+- Flexible preprocessing and augmentation pipelines
+
+**Additive Manufacturing Dataset**
+- New benchmark dataset with LPBF simulations
+- Generated on Autodesk segmentation geometries
+- Includes displacement fields and thermal histories
+
+### 🔬 Research Applications
+
+- **Neural PDE Surrogates**: Fast approximation of expensive PDE solvers
+- **Point Cloud Processing**: Large-scale geometric deep learning
+- **Scientific Computing**: Scalable transformer architectures for irregular data
+
 ## Bibtex
 ```
 @misc{puri2025flare,

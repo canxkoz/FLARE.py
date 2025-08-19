@@ -1,8 +1,8 @@
 # 🎇 FLARE: Fast Low-rank Attention Routing Engine
 
 <p align="center">
-<a href="https://arxiv.org/abs/XXXX.XXXXX" alt="arXiv">
-    <img src="https://img.shields.io/badge/arXiv-XXXX.XXXXX-b31b1b.svg" /></a>
+<a href="http://arxiv.org/abs/2508.12594" alt="arXiv">
+    <img src="https://img.shields.io/badge/arXiv-2508.12594-b31b1b.svg" /></a>
 </p>
 
 ## Abstract

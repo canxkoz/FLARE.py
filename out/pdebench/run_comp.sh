@@ -11,7 +11,8 @@
 #
 #======================================================================#
 # Comparison models
-# hyperparameters are hard coded in pdebench/__main__.py
+# hyperparameters are hard coded in pdebench/__main__.py for now
+# for all models but FLARE.
 #======================================================================#
 
 for DATASET in elasticity darcy airfoil_steady pipe drivaerml_40k lpbf; do

@@ -3,6 +3,8 @@
 <p align="center">
 <a href="http://arxiv.org/abs/2508.12594" alt="arXiv">
     <img src="https://img.shields.io/badge/arXiv-2508.12594-b31b1b.svg" /></a>
+<a href="https://huggingface.co/papers/2508.12594" alt="HuggingFace">
+    <img src="https://img.shields.io/badge/🤗_HuggingFace-2508.12594-ffbd00.svg" /></a>
 </p>
 
 ## Abstract
@@ -143,18 +145,81 @@ The installer will:
 - Optionally install Flash Attention for optimal performance
 - Optionally install LaTeX for publication-quality plots
 
+
+### 📊 Datasets
+
+This codebase supports a variety of PDE datasets. You can download them using the built-in dataset utility:
+
+```bash
+git clone https://github.com/vpuri3/FLARE.py.git
+cd FLARE.py
+chmod +x scripts/download_data.sh
+./scripts/download_data.sh
+```
+
 ### 🎯 Usage
 
 **Training**
 
 Single GPU training:
 ```bash
-python -m pdebench --train true --dataset elasticity --exp_name flare_elasticity --model_type 2 --epochs 100
+uv run python -m pdebench --train true --dataset elasticity --exp_name flare_elas --model_type 2 --epochs 100 ...
 ```
 
 Multi-GPU training:
 ```bash
-torchrun --nproc-per-node gpu -m pdebench --train true --dataset elasticity --exp_name flare_elasticity --model_type 2 --epochs 100
+uv run torchrun --nproc-per-node 2 -m pdebench --train true --dataset flare_darcy --exp_name flare_elasticity --model_type 2 --epochs 100 ...
+```
+
+Training hyperparameters can be modified with the following command-line arguments:
+
+```
+$ uv run python -m pdebench --help
+usage: __main__.py [-h] [--config CONFIG] [--print_config[=flags]] [--train {true,false}]
+                   [--evaluate {true,false}] [--restart {true,false}] [--exp_name EXP_NAME]
+                   [--seed SEED] [--dataset DATASET] [--num_workers NUM_WORKERS] [--epochs EPOCHS]
+                   [--batch_size BATCH_SIZE] [--weight_decay WEIGHT_DECAY]
+                   [--learning_rate LEARNING_RATE] [--schedule SCHEDULE]
+                   [--one_cycle_pct_start ONE_CYCLE_PCT_START]
+                   [--one_cycle_div_factor ONE_CYCLE_DIV_FACTOR]
+                   [--one_cycle_final_div_factor ONE_CYCLE_FINAL_DIV_FACTOR]
+                   [--one_cycle_three_phase {true,false}] [--opt_beta1 OPT_BETA1]
+                   [--opt_beta2 OPT_BETA2] [--opt_eps OPT_EPS] [--clip_grad_norm CLIP_GRAD_NORM]
+                   [--optimizer OPTIMIZER] [--mixed_precision {true,false}]
+                   [--attn_backend ATTN_BACKEND] [--timing_only {true,false}] [--model_type MODEL_TYPE]
+                   [--conv2d {true,false}] [--unified_pos {true,false}] [--act ACT]
+                   [--channel_dim CHANNEL_DIM] [--num_blocks NUM_BLOCKS] [--num_heads NUM_HEADS]
+                   [--num_latents NUM_LATENTS] [--num_layers_kv_proj NUM_LAYERS_KV_PROJ]
+                   [--num_layers_mlp NUM_LAYERS_MLP] [--num_layers_in_out_proj NUM_LAYERS_IN_OUT_PROJ]
+                   [--mlp_ratio MLP_RATIO] [--kv_proj_ratio KV_PROJ_RATIO]
+                   [--in_out_proj_ratio IN_OUT_PROJ_RATIO] [--out_proj_ln {true,false}]
+```
+
+Each training run will create a directory in `out/pdebench` where it would store checkpoints.
+
+```
+$ tree out/pdebench/ -L 2
+out/pdebench
+├── flare_elas
+|   ├── ckpt01
+|   ├── ...
+|   ├── ckpt10
+|   ├── config.yaml
+|   ├── grad_norm.png
+|   ├── learning_rate.png
+|   ├── losses.png
+|   ├── rel_error.json
+|   └── model_stats.json
+└── flare_darcy
+    ├── ckpt01
+    ├── ...
+    ├── ckpt10
+    ├── config.yaml
+    ├── grad_norm.png
+    ├── learning_rate.png
+    ├── losses.png
+    ├── rel_error.json
+    └── model_stats.json
 ```
 
 **Evaluation**
@@ -183,6 +248,15 @@ All experiments are managed through YAML configuration files with comprehensive 
 - New benchmark dataset with LPBF simulations
 - Generated on Autodesk segmentation geometries
 - Includes displacement fields and thermal histories
+
+### 🔄 Reproducibility
+
+We are committed to ensuring the reproducibility of our research results. Our main results can be reproduced by running the script:
+
+```
+chmod +x ./out/pdebench/run_comp.sh
+./out/pdebench/run_comp.sh
+```
 
 ### 🔬 Research Applications
 

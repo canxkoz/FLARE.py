@@ -201,15 +201,15 @@ Each training run will create a directory in `out/pdebench` where it would store
 $ tree out/pdebench/ -L 2
 out/pdebench
 ├── flare_elas
-|   ├── ckpt01
-|   ├── ...
-|   ├── ckpt10
-|   ├── config.yaml
-|   ├── grad_norm.png
-|   ├── learning_rate.png
-|   ├── losses.png
-|   ├── rel_error.json
-|   └── model_stats.json
+│   ├── ckpt01
+│   ├── ...
+│   ├── ckpt10
+│   ├── config.yaml
+│   ├── grad_norm.png
+│   ├── learning_rate.png
+│   ├── losses.png
+│   ├── rel_error.json
+│   └── model_stats.json
 └── flare_darcy
     ├── ckpt01
     ├── ...

@@ -188,8 +188,8 @@ class Config:
     extract: bool = False
     filter: bool = False
     visualize: bool = False
-    make_dataset: bool = False
     make_statistics_plot: bool = False
+    make_dataset: bool = False
 
     # dataset
     timeseries: bool = False
@@ -229,7 +229,7 @@ if __name__ == "__main__":
 
     if cfg.make_dataset:
         am.make_dataset(PROJDIR, DATADIR_FINALTIME)
-
+        
     # create a new output directory
     if cfg.visualize:
         case_dir = os.path.join(CASEDIR, cfg.exp_name)

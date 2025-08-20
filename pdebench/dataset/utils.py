@@ -417,87 +417,6 @@ def sdf(mesh, resolution):
     grid = np.stack(np.meshgrid(tx, ty, tz, indexing="ij"), axis=-1).astype(np.float32)
     return torch.from_numpy(scene.compute_signed_distance(grid).numpy()).float()
 
-class ShapeNetCarDataset(torch.utils.data.Dataset):
-    # from https://github.com/ml-jku/UPT/blob/main/src/datasets/shapenet_car.py
-    # generated with torch.randperm(889, generator=torch.Generator().manual_seed(0))[:189]
-    TEST_INDICES = {
-        550, 592, 229, 547, 62, 464, 798, 836, 5, 732, 876, 843, 367, 496,
-        142, 87, 88, 101, 303, 352, 517, 8, 462, 123, 348, 714, 384, 190,
-        505, 349, 174, 805, 156, 417, 764, 788, 645, 108, 829, 227, 555, 412,
-        854, 21, 55, 210, 188, 274, 646, 320, 4, 344, 525, 118, 385, 669,
-        113, 387, 222, 786, 515, 407, 14, 821, 239, 773, 474, 725, 620, 401,
-        546, 512, 837, 353, 537, 770, 41, 81, 664, 699, 373, 632, 411, 212,
-        678, 528, 120, 644, 500, 767, 790, 16, 316, 259, 134, 531, 479, 356,
-        641, 98, 294, 96, 318, 808, 663, 447, 445, 758, 656, 177, 734, 623,
-        216, 189, 133, 427, 745, 72, 257, 73, 341, 584, 346, 840, 182, 333,
-        218, 602, 99, 140, 809, 878, 658, 779, 65, 708, 84, 653, 542, 111,
-        129, 676, 163, 203, 250, 209, 11, 508, 671, 628, 112, 317, 114, 15,
-        723, 746, 765, 720, 828, 662, 665, 399, 162, 495, 135, 121, 181, 615,
-        518, 749, 155, 363, 195, 551, 650, 877, 116, 38, 338, 849, 334, 109,
-        580, 523, 631, 713, 607, 651, 168,
-    }
-
-    def __init__(self, datadir, split='train', resolution=None, transform=None):
-        super().__init__()
-        self.datadir = datadir
-        self.split = split
-        self.resolution = resolution
-        self.transform = transform
-
-        # define spatial min/max of simulation for normalizing to [0, 1]
-        # min: [-1.7978, -0.7189, -4.2762]
-        # max: [1.8168, 4.3014, 5.8759]
-        self.domain_min = torch.tensor([-2.0, -1.0, -4.5])
-        self.domain_max = torch.tensor([2.0, 4.5, 6.0])
-
-        # mean/std for normalization (calculated on the 700 train samples)
-        # import torch
-        # from datasets.shapenet_car import ShapenetCar
-        # ds = ShapenetCar(global_root="/local00/bioinf/shapenet_car", split="train")
-        # targets = [ds.getitem_pressure(i) for i in range(len(ds))]
-        # targets = torch.stack(targets)
-        # targets.mean()
-        # targets.std()
-        self.pressure_mean = torch.tensor(-36.3099)
-        self.pressure_std  = torch.tensor( 48.5743)
-
-        # discover uris
-        self.uris = []
-        for i in range(9):
-            param_uri = self.datadir / f"param{i}"
-            for name in sorted(os.listdir(param_uri)):
-                sample_uri = param_uri / name
-                if sample_uri.is_dir():
-                    self.uris.append(sample_uri)
-        assert len(self.uris) == 889, f"found {len(self.uris)} uris instead of 889"
-        # split into train/test uris
-        if split == 'train':
-            train_idxs = [i for i in range(len(self.uris)) if i not in self.TEST_INDICES]
-            self.uris = [self.uris[train_idx] for train_idx in train_idxs]
-            assert len(self.uris) == 700
-        elif split == 'test':
-            self.uris = [self.uris[test_idx] for test_idx in self.TEST_INDICES]
-            assert len(self.uris) == 189
-        else:
-            raise NotImplementedError
-
-    def __len__(self):
-        return len(self.uris)
-
-    def __getitem__(self, idx):
-        uri = self.uris[idx]
-        if check_package_version_lteq('torch', '2.4'):
-            pressure = torch.load(uri / "pressure.th")
-            mesh_points = torch.load(uri / "mesh_points.th")
-        else:
-            pressure = torch.load(uri / "pressure.th", weights_only=True)
-            mesh_points = torch.load(uri / "mesh_points.th", weights_only=True)
-
-        pressure = (pressure - self.pressure_mean) / self.pressure_std
-        mesh_points = (mesh_points - self.domain_min) / (self.domain_max - self.domain_min)
-
-        return mesh_points.view(-1, 3), pressure.view(-1, 1)
-
 #======================================================================#
 class DrivAerMLDataset(torch.utils.data.Dataset):
     def __init__(self, data_dir_base, split):
@@ -544,7 +463,7 @@ class LPBFDataset(pyg.data.Dataset):
         assert split in ['train', 'test'], f"Invalid split: {split}. Must be one of: 'train', 'test'."
 
         self.root = os.path.join(root, split)
-        self.files = [os.path.join(self.root, f) for f in sorted(os.listdir(self.root)) if f.endswith('.pt')]
+        self.files = [os.path.join(self.root, f) for f in sorted(os.listdir(self.root)) if f.endswith('.npz')]
 
         super().__init__(root, transform=transform)
 
@@ -553,10 +472,19 @@ class LPBFDataset(pyg.data.Dataset):
 
     def get(self, idx):
         path = os.path.join(self.root, self.files[idx])
-        if check_package_version_lteq('torch', '2.4'):
-            graph = torch.load(path)
-        else:
-            graph = torch.load(path, weights_only=False)
+        data = np.load(path, allow_pickle=True)
+        graph = pyg.data.Data()
+
+        for key, value in data.items():
+            if key == '_metadata':
+                graph['metadata'] = json.loads(value[0])['metadata']
+            else:
+                dtype = torch.float32 if value.dtype == np.float32 else torch.long
+                graph[key] = torch.tensor(value, dtype=dtype)
+
+        graph.x = graph.pos
+        graph.y = graph.disp[:,2]
+
         return graph
 
 #======================================================================#

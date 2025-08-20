@@ -2,6 +2,7 @@
 import os
 import shutil
 import torch
+import json
 
 import numpy as np
 import pandas as pd
@@ -252,6 +253,17 @@ def make_include_list(PROJDIR):
 
 #======================================================================#
 def make_dataset(PROJDIR: str, DATADIR: str, seed: int = 0):
+    """
+    Convert PyG Data objects to NPZ format for HuggingFace compatibility
+    
+    Args:
+        PROJDIR: Project directory path
+        DATADIR: Data directory path  
+        seed: Random seed for train/test split
+    
+    Examples:
+        make_dataset(PROJDIR, DATADIR, seed=0)
+    """
 
     # open include_list
     include_list_file = os.path.join(PROJDIR, 'am_dataset_stats', 'include_list.txt')
@@ -259,7 +271,7 @@ def make_dataset(PROJDIR: str, DATADIR: str, seed: int = 0):
         include_list = [line.strip() for line in f.readlines()]
 
     num_include_list = len(include_list)
-        
+
     DATADIR_PROCESSED = os.path.join(DATADIR, 'processed')
     case_names = [case_name for case_name in os.listdir(DATADIR_PROCESSED) if case_name.endswith('.pt')]
 
@@ -278,6 +290,7 @@ def make_dataset(PROJDIR: str, DATADIR: str, seed: int = 0):
     
     # split into train and test
     num_cases = len(case_files)
+    np.random.seed(seed)  # Set seed for reproducibility
     indices = np.random.permutation(num_cases)
     train_indices, test_indices = indices[:1100], indices[1100:]
 
@@ -292,13 +305,50 @@ def make_dataset(PROJDIR: str, DATADIR: str, seed: int = 0):
     os.makedirs(os.path.join(SAVEDIR, 'train'), exist_ok=False)
     os.makedirs(os.path.join(SAVEDIR, 'test'), exist_ok=False)
 
-    # copy files from include_list to SAVEDIR
-    for case_file in train_files:
-        shutil.copy(case_file, os.path.join(SAVEDIR, 'train', case_file.split('/')[-1]))
+    def save_npz_data(data_dict, output_file):
+        """Save data in NPZ format"""
+        # Convert tensors to numpy arrays for NPZ
+        npz_data = {}
+        metadata = {}
+        for key, value in data_dict.items():
+            if key == 'edge_dxyz':
+                continue
+            if isinstance(value, torch.Tensor):
+                npz_data[key] = value.numpy()
+            elif isinstance(value, np.ndarray):
+                npz_data[key] = value
+            else:
+                # Store non-array data as metadata in a separate field
+                metadata[key] = value
 
-    for case_file in test_files:
-        shutil.copy(case_file, os.path.join(SAVEDIR, 'test', case_file.split('/')[-1]))
+        # Add metadata as a JSON string if present
+        if metadata:
+            npz_data['_metadata'] = np.array([json.dumps(metadata)], dtype=object)
 
+        np.savez_compressed(output_file, **npz_data)
+
+    # Process train files
+    print("Converting training files to NPZ format...")
+    for case_file in tqdm(train_files, desc="Processing train files"):
+        pyg_data = torch.load(case_file, weights_only=False)
+        data_dict = pyg_data.to_dict()
+
+        case_name = case_file.split('/')[-1].replace('.pt', '.npz')
+        output_file = os.path.join(SAVEDIR, 'train', case_name)
+        save_npz_data(data_dict, output_file)
+
+    # Process test files
+    print("Converting test files to NPZ format...")
+    for case_file in tqdm(test_files, desc="Processing test files"):
+        pyg_data = torch.load(case_file, weights_only=False)
+        data_dict = pyg_data.to_dict()
+
+        case_name = case_file.split('/')[-1].replace('.pt', '.npz')
+        output_file = os.path.join(SAVEDIR, 'test', case_name)
+        save_npz_data(data_dict, output_file)
+
+    print(f"HuggingFace compatible dataset saved to {SAVEDIR} in NPZ format")
     return
+
 #======================================================================#
 #

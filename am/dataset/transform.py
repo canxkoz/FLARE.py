@@ -66,7 +66,10 @@ class DatasetTransform:
         disp  = graph.disp  / self.disp_scale
         vmstr = graph.vmstr / self.vmstr_scale
         temp  = graph.temp  / self.temp_scale
-        edge_dxyz = graph.edge_dxyz / self.pos_scale
+        if hasattr(graph, 'edge_dxyz'):
+            edge_dxyz = graph.edge_dxyz / self.pos_scale
+        else:
+            edge_dxyz = None
         return pos, disp, vmstr, temp, edge_dxyz
 
     def normalize_sdf_x(self, sdf_x):

@@ -7,6 +7,8 @@ import torch
 import torch_geometric as pyg
 from tqdm import tqdm
 from torch.utils.data import TensorDataset, Subset
+import datasets
+import huggingface_hub
 
 import pdebench
 from mlutils import check_package_version_lteq
@@ -306,16 +308,15 @@ def load_dataset(
         return train_dataset, test_dataset, metadata
 
     #----------------------------------------------------------------#
-    # AM DATASET
+    # LPBF DATASET
     #----------------------------------------------------------------#
     elif dataset_name == 'lpbf':
         import am
 
         transform = am.FinaltimeDatasetTransform(disp=True, vmstr=False, mesh=False)
 
-        DATADIR = os.path.join(DATADIR_BASE, 'LPBF')
-        train_dataset = LPBFDataset(DATADIR, split='train', transform=transform)
-        test_dataset  = LPBFDataset(DATADIR, split='test', transform=transform)
+        train_dataset = LPBFDataset(split='train', transform=transform)
+        test_dataset  = LPBFDataset(split='test', transform=transform)
 
         mean_disp = 0.
         std_disp  = 0.
@@ -458,32 +459,68 @@ class DrivAerMLDataset(torch.utils.data.Dataset):
 # AM STEADY (LPBF) DATASET
 #======================================================================#
 class LPBFDataset(pyg.data.Dataset):
-    def __init__(self, root, split='train', transform=None):
-
+    def __init__(self, split='train', transform=None):
         assert split in ['train', 'test'], f"Invalid split: {split}. Must be one of: 'train', 'test'."
 
-        self.root = os.path.join(root, split)
-        self.files = [os.path.join(self.root, f) for f in sorted(os.listdir(self.root)) if f.endswith('.npz')]
+        self.repo_id = 'vedantpuri/LPBF_FLARE'
+        
+        print(f"Initializing {split} dataset...")
+        
+        # Fast initialization: Load dataset index first (lightweight)
+        import time
+        start_time = time.time()
+        self.dataset = datasets.load_dataset(self.repo_id, split=split, keep_in_memory=True)
+        dataset_time = time.time() - start_time
+        print(f"Dataset index load: {dataset_time:.2f}s")
 
-        super().__init__(root, transform=transform)
+        # Lazy cache initialization - only download when needed
+        self._cache_dir = None
+        
+        print(f"✅ Loaded {len(self.dataset)} samples for {split} split")
+
+        super().__init__(None, transform=transform)
+    
+    @property
+    def cache_dir(self):
+        """Lazy loading of cache directory - only download when first sample is accessed."""
+        if self._cache_dir is None:
+            print("Downloading repository files on first access...")
+            import time
+            start_time = time.time()
+            self._cache_dir = huggingface_hub.snapshot_download(self.repo_id, repo_type="dataset")
+            download_time = time.time() - start_time
+            print(f"Repository download/cache: {download_time:.2f}s")
+            print(f"Cache directory: {self._cache_dir}")
+        return self._cache_dir
 
     def len(self):
-        return len(self.files)
+        return len(self.dataset)
 
     def get(self, idx):
-        path = os.path.join(self.root, self.files[idx])
-        data = np.load(path, allow_pickle=True)
+        # Get file path from index
+        entry = self.dataset[idx]
+        rel_path = entry["file"]
+        npz_path = os.path.join(self.cache_dir, rel_path)
+
+        # Load NPZ file (main bottleneck check)
+        data = np.load(npz_path, allow_pickle=True)
         graph = pyg.data.Data()
 
+        # Convert to tensors efficiently
         for key, value in data.items():
-            if key == '_metadata':
-                graph['metadata'] = json.loads(value[0])['metadata']
+            if key == "_metadata":
+                graph["metadata"] = json.loads(value[0])["metadata"]
             else:
-                dtype = torch.float32 if value.dtype == np.float32 else torch.long
-                graph[key] = torch.tensor(value, dtype=dtype)
+                # Use torch.from_numpy for faster conversion when possible
+                if value.dtype.kind == "f":
+                    tensor = torch.from_numpy(value.astype(np.float32))
+                else:
+                    tensor = torch.from_numpy(value.astype(np.int64)) if value.dtype != np.int64 else torch.from_numpy(value)
+                graph[key] = tensor
 
+        # Set standard attributes
         graph.x = graph.pos
-        graph.y = graph.disp[:,2]
+        graph.y = graph.disp[:, 2]
 
         return graph
 

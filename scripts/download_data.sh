@@ -3,6 +3,7 @@
 #=========================================#
 PROJ_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 DATA_DIR=${PROJ_DIR}/data
+export HF_HOME=${DATA_DIR}/huggingface
 
 mkdir -p ${DATA_DIR}
 cd ${DATA_DIR}
@@ -85,18 +86,6 @@ for num_points in 10k 40k 100k 200k 300k 400k 500k 1m; do
     tar -xzf drivaerml_surface_presampled_${num_points}.tar.gz
     rm -rf drivaerml_surface_presampled_${num_points}.tar.gz
 done
-
-cd $DATA_DIR
-
-#=========================================#
-# LPBF
-#=========================================#
-mkdir -p LPBF
-echo "Downloading LPBF dataset..."
-uv run hf download --repo-type dataset vedantpuri/PDESurrogates LPBF.tar.gz --local-dir .
-echo "Extracting LPBF dataset..."
-tar -xzf LPBF.tar.gz
-rm -rf LPBF.tar.gz
 
 cd $DATA_DIR
 

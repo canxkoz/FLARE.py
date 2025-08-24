@@ -235,7 +235,7 @@ class FLAREModel(nn.Module):
         
         mlp_hidden_dim = int(channel_dim * mlp_ratio)
         kv_proj_hidden_dim = int(channel_dim * kv_proj_ratio)
-        in_out_proj_hidden_dim = int(in_dim * in_out_proj_ratio)
+        in_out_proj_hidden_dim = int(channel_dim * in_out_proj_ratio)
 
         self.in_proj = ResidualMLP(
             in_dim=in_dim,

@@ -857,7 +857,7 @@ if __name__ == "__main__":
 
     # load config from experiment directory
     if cfg.evaluate or cfg.restart:
-        assert os.path.exists(case_dir)
+        assert os.path.exists(case_dir), f"Experiment directory {case_dir} does not exist."
         config_file = os.path.join(case_dir, 'config.yaml')
 
         # save original config
